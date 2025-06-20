@@ -15,6 +15,14 @@ admin.initializeApp({
 
 const db = admin.firestore();
 
+// Fungsi untuk dapatkan waktu sekarang dalam zona WIB
+function getWaktuWIB() {
+  const now = new Date();
+  const offsetWIB = 7 * 60; // offset UTC+7 dalam menit
+  const localTime = new Date(now.getTime() + offsetWIB * 60000 - now.getTimezoneOffset() * 60000);
+  return localTime;
+}
+
 // Endpoint untuk kirim data sensor lingkungan ke Firestore
 app.post("/api/kirimdata", async (req, res) => {
   try {
@@ -24,36 +32,35 @@ app.post("/api/kirimdata", async (req, res) => {
       suhu,
       kelembaban,
       status_api,
-      status_asap,
-      timestamp
+      status_asap
+      // timestamp diabaikan
     } = req.body;
 
-    // Validasi field wajib
+    // Validasi field wajib (timestamp dihapus dari validasi)
     if (
       suhu === undefined ||
       kelembaban === undefined ||
       status_api === undefined ||
-      status_asap === undefined ||
-      !timestamp
+      status_asap === undefined
     ) {
       return res.status(400).json({
         success: false,
-        message: "Semua field (suhu, kelembaban, status_api, status_asap, timestamp) wajib diisi"
+        message: "Field (suhu, kelembaban, status_api, status_asap) wajib diisi"
       });
     }
 
-    // Simpan ke Firestore
+    // Simpan ke Firestore dengan timestamp WIB
     await db.collection("history").add({
       suhu: Number(suhu),
       kelembaban: Number(kelembaban),
       status_api: Boolean(status_api),
       status_asap: Boolean(status_asap),
-      timestamp: new Date(timestamp)
+      timestamp: getWaktuWIB()
     });
 
     return res.status(200).json({
       success: true,
-      message: "Data berhasil dikirim ke Firestore"
+      message: "Data berhasil dikirim ke Firestore dengan timestamp WIB"
     });
   } catch (error) {
     console.error("Error mengirim data:", error);
