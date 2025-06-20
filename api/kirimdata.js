@@ -17,11 +17,9 @@ const db = admin.firestore();
 
 // Fungsi untuk dapatkan waktu sekarang dalam zona WIB
 function getWaktuWIB() {
-  const now = new Date();
-  const offsetWIB = 7 * 60; // offset UTC+7 dalam menit
-  const localTime = new Date(now.getTime() + offsetWIB * 60000 - now.getTimezoneOffset() * 60000);
-  return localTime;
+  return new Date(); // biarkan Firestore handle zona waktu secara universal (UTC)
 }
+
 
 // Endpoint untuk kirim data sensor lingkungan ke Firestore
 app.post("/api/kirimdata", async (req, res) => {
